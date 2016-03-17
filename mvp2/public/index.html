@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <script src="/angular/angular.js" ></script>
+    <link rel="stylesheet" type="text/css" href="/bootstrap/bootstrap.css">
+
+</head>
+<body ng-app="appName" ng-controller="MainController" >
+
+
+<div style="font-size: 12px; ">
+
+<div class="col-md-8">
+
+
+    <div ng-repeat="page in pages" style="border:solid 1px black; padding:10px; position:relative; width:800px; height: 1100px; overflow-y:auto;">
+        page {{ $index }}
+
+        <div ng-repeat="text in page.texts" style="position:absolute; left: {{text.x}}px; top: {{text.y}}px;" >
+            {{ text.s }}
+        </div>
+
+    </div>
+
+
+
+</div>
+
+    <div class="col-md-4" style="border: solid 1px black; padding:10px; ">
+
+<ul>
+    <li ng-repeat="invoice in invoices">
+        <a ng-click="loadInvoice(invoice)">{{invoice}}</a>
+
+</li>
+</ul>
+
+
+        <button ng-click="findSavings()" >find savings</button>
+        <input type="text" ng-model="itemName" />
+        <input type="text" ng-model="itemPrice" />
+
+    </div>
+
+
+</div>
+
+
+
+<script>
+
+    (function() {
+
+        angular
+                .module("appName", [])
+                .controller("MainController", MainController);
+
+        function MainController($scope, $http) {
+
+            $scope.itemName="adsl 40";
+            $scope.itemPrice=20;
+
+            $scope.findSavings = function()
+            {
+
+                var csvResult = "";
+                var totalPaid =0 ;
+                var itemCount =0;
+                $scope.pages.forEach(function(page) {
+
+
+                    page.texts.forEach(function(text) {
+
+                        if (text.s.indexOf($scope.itemName) != -1) {
+
+                            var priceElements = page.texts.find(function(text2) {
+                                return text2.y == text.y;
+                            });
+
+                            csvResult += $scope.itemName + " " + priceElements.s + "\n";
+                            totalPaid += Number(priceElements.s);
+
+                            itemCount ++;
+                        }
+
+                    });
+
+
+
+                });
+
+                var ourPrice = $scope.itemPrice * itemCount;
+
+                console.log(csvResult);
+                console.log("Paid: " + totalPaid);
+                console.log("Our price: " +  ourPrice );
+                console.log("Total Savings: " + (totalPaid - ourPrice));
+
+
+            };
+
+            $scope.loadInvoice = function (invoice)
+            {
+                $http({
+                    method: 'GET',
+                    url: '/getInvoice/' + invoice
+                }).then(function successCallback(response) {
+
+                    setPdfPage(response.data);
+
+                });
+            };
+
+
+            function setPdfPage(pageData)
+            {
+                var pages = [];
+
+                pageData.Pages.forEach(function(pdfPage) {
+                    var page = {texts: []};
+
+                    pdfPage.Texts.forEach(function(pdfText) {
+
+                        var text = {
+                            s:pdfText.R[0].T,
+                            s2: pdfText.R[0].T2,
+                            x:pdfText.x * 10,
+                            y:pdfText.y * 34
+                        };
+
+                        page.texts.push(text);
+
+                    });
+
+                    pages.push(page);
+
+                });
+
+                $scope.pages = pages;
+
+            }
+
+
+            $scope.loadInvoice('בזק בינלאומי 12.15.pdf');
+
+
+            $http({
+                method: 'GET',
+                url: '/getInvoices'
+            }).then(function successCallback(response) {
+
+                $scope.invoices = response.data;
+
+            }, function errorCallback(response) {
+            });
+
+
+
+
+        };
+
+
+    })();
+
+
+</script>
+
+
+
+
+</body>
+</html>
