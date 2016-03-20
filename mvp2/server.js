@@ -6,6 +6,8 @@
 
 var express = require('express');
 var app = express();
+var products = require ('./data/products');
+var _ = require('underscore');
 
 app.use(express.static('public'));
 app.use('/angular', express.static(__dirname + '/node_modules/angular/'));
@@ -34,7 +36,6 @@ app.get('/getInvoices', function(req, res) {
     });
 });
 
-
 app.get('/getInvoice/:filename', function(req, res) {
     var filename = req.params.filename;
 
@@ -47,6 +48,17 @@ app.get('/getInvoice/:filename', function(req, res) {
 
 });
 
+app.get('/categories', function(req, res) {
+
+    var categories = _.uniq(products.map(p => p.category));
+
+    res.json(categories);
+});
+
+app.get('/products', function(req, res) {
+
+    res.json(products);
+});
 
 
 app.listen(3000, function () {

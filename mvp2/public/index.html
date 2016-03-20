@@ -4,55 +4,74 @@
     <meta charset="UTF-8">
     <title></title>
 
-    <script src="/angular/angular.js" ></script>
+    <script src="/angular/angular.js"></script>
     <link rel="stylesheet" type="text/css" href="/bootstrap/bootstrap.css">
 
 </head>
-<body ng-app="appName" ng-controller="MainController" >
+<body ng-app="appName" ng-controller="MainController">
 
 
-<div style="font-size: 12px; ">
+<div style="padding: 20px; ">
 
-<div class="col-md-8">
+    <div class="col-md-7" style="font-size: 8px; height: 600px; overflow-y:auto; padding: 30px; border: solid 1px black;">
 
 
-    <div ng-repeat="page in pages" style="border:solid 1px black; padding:10px; position:relative; width:800px; height: 1100px; overflow-y:auto;">
-        page {{ $index }}
+        <div ng-repeat="page in pages"
+             style="border:solid 1px black; padding:10px; position:relative; width:600px; height: 1100px; overflow-y:auto; margin-bottom: 20px; background: lightyellow;">
+            page {{ $index }}
 
-        <div ng-repeat="text in page.texts" style="position:absolute; left: {{text.x}}px; top: {{text.y}}px;" >
-            {{ text.s }}
+            <div ng-repeat="text in page.texts" style="position:absolute; left: {{text.x}}px; top: {{text.y}}px;">
+                {{ text.s }}
+            </div>
+
         </div>
 
-    </div>
-
-
-
-</div>
-
-    <div class="col-md-4" style="border: solid 1px black; padding:10px; ">
-
-<ul>
-    <li ng-repeat="invoice in invoices">
-        <a ng-click="loadInvoice(invoice)">{{invoice}}</a>
-
-</li>
-</ul>
-
-
-        <button ng-click="findSavings()" >find savings</button>
-        <input type="text" ng-model="itemName" />
-        <input type="text" ng-model="itemPrice" />
 
     </div>
 
 
-</div>
+    <div class="col-md-4">
 
+        <ul  style="border: solid 1px black; padding:10px; ">
+            <li ng-repeat="invoice in invoices">
+                <a ng-click="loadInvoice(invoice)" style="cursor:pointer;">{{invoice}}</a>
+
+            </li>
+        </ul>
+
+        <div>
+
+            <button ng-click="findSavings()">find savings</button>
+            <input type="text" ng-model="itemName" size="10"  />
+            <input type="text" ng-model="itemPrice" size="10"/>
+
+            <br /><br />
+            <button ng-click="findSavings2()">find savings2</button>
+
+        </div>
+
+        <ul  style="border: solid 1px black; padding:10px; ">
+            <li ng-repeat="found in foundProducts track by found.dummyIndex">
+                {{found.text}}
+
+            </li>
+        </ul>
+
+
+    </div>
+
+
+
+
+</div>
 
 
 <script>
 
-    (function() {
+    (function () {
+
+
+
 
         angular
                 .module("appName", [])
@@ -60,34 +79,87 @@
 
         function MainController($scope, $http) {
 
-            $scope.itemName="adsl 40";
-            $scope.itemPrice=20;
+            $scope.itemName = "adsl 40";
+            $scope.itemPrice = 20;
 
-            $scope.findSavings = function()
-            {
+            $scope.foundProducts = [];
+
+            var that = this;
+
+            this.getProducts = function() {
+                $http({
+                    method: 'GET',
+                    url: '/products/'
+                }).then(function successCallback(response) {
+
+                    console.log(response.data);
+
+                    that.products = response.data;
+
+
+                });
+            };
+
+            this.getProducts();
+
+            $scope.findSavings2 = function () {
+
+                var productNames = that.products.map(function(p) { return p.name;});
+
+                //console.log(productNames);
+
+                var texts = [];
+
+                $scope.pages.forEach(function(page) {
+                    page.texts.forEach(function(text) {
+                        texts.push(text.s);
+                    });
+                });
+
+
+                var foundProducts = [];
+                var dummyIndex = 0;
+
+                texts.forEach(function(text) {
+                    if (productNames.indexOf(text) != -1) {
+                        dummyIndex ++;
+                        foundProducts.push({ text, dummyIndex});
+                    }
+                });
+
+//                productNames.forEach(function(productName){
+//                    if (texts.indexOf(productName != -1))
+//                        foundProducts.push(productName);
+//                });
+
+                $scope.foundProducts = foundProducts;
+
+                console.log(foundProducts);
+            };
+
+            $scope.findSavings = function () {
 
                 var csvResult = "";
-                var totalPaid =0 ;
-                var itemCount =0;
-                $scope.pages.forEach(function(page) {
+                var totalPaid = 0;
+                var itemCount = 0;
+                $scope.pages.forEach(function (page) {
 
 
-                    page.texts.forEach(function(text) {
+                    page.texts.forEach(function (text) {
 
                         if (text.s.indexOf($scope.itemName) != -1) {
 
-                            var priceElements = page.texts.find(function(text2) {
+                            var priceElements = page.texts.find(function (text2) {
                                 return text2.y == text.y;
                             });
 
                             csvResult += $scope.itemName + " " + priceElements.s + "\n";
                             totalPaid += Number(priceElements.s);
 
-                            itemCount ++;
+                            itemCount++;
                         }
 
                     });
-
 
 
                 });
@@ -96,14 +168,13 @@
 
                 console.log(csvResult);
                 console.log("Paid: " + totalPaid);
-                console.log("Our price: " +  ourPrice );
+                console.log("Our price: " + ourPrice);
                 console.log("Total Savings: " + (totalPaid - ourPrice));
 
 
             };
 
-            $scope.loadInvoice = function (invoice)
-            {
+            $scope.loadInvoice = function (invoice) {
                 $http({
                     method: 'GET',
                     url: '/getInvoice/' + invoice
@@ -115,20 +186,19 @@
             };
 
 
-            function setPdfPage(pageData)
-            {
+            function setPdfPage(pageData) {
                 var pages = [];
 
-                pageData.Pages.forEach(function(pdfPage) {
+                pageData.Pages.forEach(function (pdfPage) {
                     var page = {texts: []};
 
-                    pdfPage.Texts.forEach(function(pdfText) {
+                    pdfPage.Texts.forEach(function (pdfText) {
 
                         var text = {
-                            s:pdfText.R[0].T,
+                            s: pdfText.R[0].T,
                             s2: pdfText.R[0].T2,
-                            x:pdfText.x * 10,
-                            y:pdfText.y * 34
+                            x: pdfText.x * 8,
+                            y: pdfText.y * 34
                         };
 
                         page.texts.push(text);
@@ -140,7 +210,7 @@
                 });
 
                 $scope.pages = pages;
-
+                window.pages = pages;
             }
 
 
@@ -158,8 +228,6 @@
             });
 
 
-
-
         };
 
 
@@ -167,8 +235,6 @@
 
 
 </script>
-
-
 
 
 </body>
