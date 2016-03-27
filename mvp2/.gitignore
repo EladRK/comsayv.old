@@ -1,8 +1,0 @@
-# Dependency directories
-node_modules
-
-# webstorm
-.idea
-
-# OSX crap
-.DS_Store

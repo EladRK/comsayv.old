@@ -20,7 +20,7 @@
              style="border:solid 1px black; padding:10px; position:relative; width:600px; height: 1100px; overflow-y:auto; margin-bottom: 20px; background: lightyellow;">
             page {{ $index }}
 
-            <div ng-repeat="text in page.texts" style="position:absolute; left: {{text.x}}px; top: {{text.y}}px;">
+            <div ng-repeat="text in page.texts" style="border: solid 1px #ccc; position:absolute; left: {{text.x}}px; top: {{text.y}}px;">
                 {{ text.s }}
             </div>
 
@@ -52,7 +52,7 @@
 
         <ul  style="border: solid 1px black; padding:10px; ">
             <li ng-repeat="found in foundProducts track by found.dummyIndex">
-                {{found.text}}
+                {{found.text.s}}
 
             </li>
         </ul>
@@ -92,8 +92,6 @@
                     url: '/products/'
                 }).then(function successCallback(response) {
 
-                    console.log(response.data);
-
                     that.products = response.data;
 
 
@@ -106,13 +104,11 @@
 
                 var productNames = that.products.map(function(p) { return p.name;});
 
-                //console.log(productNames);
-
                 var texts = [];
 
                 $scope.pages.forEach(function(page) {
                     page.texts.forEach(function(text) {
-                        texts.push(text.s);
+                        texts.push(text);
                     });
                 });
 
@@ -120,21 +116,47 @@
                 var foundProducts = [];
                 var dummyIndex = 0;
 
+                var totalSavings = 0;
+
                 texts.forEach(function(text) {
-                    if (productNames.indexOf(text) != -1) {
+                    if (productNames.indexOf(text.s) != -1) {
                         dummyIndex ++;
-                        foundProducts.push({ text, dummyIndex});
+
+                        var sameLineTexts = texts.filter(function(t) {
+                            return t.y == text.y;
+                        }).map(function(t) { return t.s });
+
+                        foundProducts.push({ text, dummyIndex, sameLineTexts});
+
+
+                        console.log(text.s);
+
+                        var product = that.products[productNames.indexOf(text.s)];
+
+                        if (product.type) {
+
+                            if (product.type === 'fixedPrice') {
+                                var price = Number(sameLineTexts[product.columns[0]]);
+                                console.log('fixedPrice ' + price);
+                                console.log(product.price);
+                                console.log('savings: ' + (price - product.price));
+
+                                totalSavings += (price - product.price);
+                            }
+                            else if (product.type === 'perDuration')
+                                console.log('perDuration ' + sameLineTexts[product.columns[0]] + ' X '+ sameLineTexts[product.columns[1]]);
+                        }
+
+                        console.log(sameLineTexts);
+
                     }
                 });
 
-//                productNames.forEach(function(productName){
-//                    if (texts.indexOf(productName != -1))
-//                        foundProducts.push(productName);
-//                });
 
                 $scope.foundProducts = foundProducts;
+                console.log('Total Savings: ' + totalSavings);
 
-                console.log(foundProducts);
+                //console.log(foundProducts);
             };
 
             $scope.findSavings = function () {
@@ -214,7 +236,7 @@
             }
 
 
-            $scope.loadInvoice('בזק בינלאומי 12.15.pdf');
+            $scope.loadInvoice('bezeqint.pdf');
 
 
             $http({
