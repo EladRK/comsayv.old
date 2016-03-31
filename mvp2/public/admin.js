@@ -5,13 +5,13 @@ var myApp = angular.module('myApp', ['ng-admin']);
 myApp.config(['NgAdminConfigurationProvider', function (nga) {
 
     var admin = nga.application('My First Admin')
-        .baseApiUrl('http://localhost:3000/api/');
+        .baseApiUrl('http://localhost:6007/api/v1/products');
 
     var product = nga.entity('products').identifier(nga.field('_id'));
     var category = nga.entity('categories').identifier(nga.field('_id'));
 
     product.listView().fields([
-        nga.field('name').isDetailLink(true),,
+        nga.field('name').isDetailLink(true),
         nga.field('category'),
         nga.field('price'),
         nga.field('columns'),
