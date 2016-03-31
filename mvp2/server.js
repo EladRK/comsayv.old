@@ -2,16 +2,26 @@
  * Created by elad.katz on 01/03/2016.
  */
 
-
+"use strict";
 
 var express = require('express');
 var app = express();
 var products = require ('./data/products');
 var _ = require('underscore');
+var bodyParser = require('body-parser');
+
+
+app.use(bodyParser.json());
+
+var productsApi = require('./api/products');
+app.use('/api/products', productsApi);
+
 
 app.use(express.static('public'));
 app.use('/angular', express.static(__dirname + '/node_modules/angular/'));
 app.use('/bootstrap', express.static(__dirname + '/node_modules/bootstrap/dist/css/'));
+app.use('/node_modules/ng-admin/build/', express.static(__dirname + 'node_modules/ng-admin/build/'));
+
 
 app.get('/pdfjson', function (req, res) {
 
@@ -54,6 +64,8 @@ app.get('/categories', function(req, res) {
 
     res.json(categories);
 });
+
+//app.get('/api/products', function(req,res));
 
 app.get('/products', function(req, res) {
 
