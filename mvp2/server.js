@@ -16,11 +16,14 @@ app.use(bodyParser.json());
 var productsApi = require('./api/products');
 app.use('/api/products', productsApi);
 
+var categoriesApi = require('./api/categories');
+app.use('/api/categories', categoriesApi);
+
 
 app.use(express.static('public'));
 app.use('/angular', express.static(__dirname + '/node_modules/angular/'));
 app.use('/bootstrap', express.static(__dirname + '/node_modules/bootstrap/dist/css/'));
-app.use('/node_modules/ng-admin/build/', express.static(__dirname + 'node_modules/ng-admin/build/'));
+app.use('/node_modules/ng-admin/build/', express.static(__dirname + '/node_modules/ng-admin/build/'));
 
 
 app.get('/pdfjson', function (req, res) {

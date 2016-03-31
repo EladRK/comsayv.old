@@ -5,46 +5,55 @@
 "use strict";
 var express = require('express');
 var router = express.Router();
-var mongoose = require('mongoose');
 
-
-var Schema = mongoose.Schema;
-
-var ProductSchema = new Schema({
-    price: Number,
-    category: String,
-    name: String,
-    type: String,
-    columns: [Number]
-});
-
-var Product = mongoose.model('Product', ProductSchema);
-
+var db = require('./db');
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
+router.get('/', function (req, res, next) {
 
-    mongoose.connect('mongodb://localhost/comsayv');
-
-    Product.find().then(products => {
-      res.json(products);
+    db.Product.find().then(result => {
+        res.json(result);
 
     });
 });
 
-router.post('/', function(req, res, next) {
+router.get('/:id', function (req, res, next) {
+
+    db.Product.findById(req.params.id).then(result => {
+        res.json(result);
+
+    });
+});
+
+
+router.post('/', function (req, res, next) {
 
     var data = req.body;
 
-    mongoose.connect('mongodb://localhost/comsayv');
 
-
-    var product = new Product(data);
-    product.save((result) =>
-    {
+    var product = new db.Product(data);
+    product.save((result) => {
         res.json(result);
     });
 
+
+});
+
+router.delete('/:id', function (req, res, next) {
+
+    db.Product.remove({"_id" : req.params.id}).then(result => {
+        res.json(result);
+
+    });
+});
+
+router.put('/:id', function (req, res, next) {
+
+
+    db.Product.findOneAndUpdate({"_id" : req.params.id}, req.body).then(result => {
+        res.json(result);
+
+    });
 
 });
 
